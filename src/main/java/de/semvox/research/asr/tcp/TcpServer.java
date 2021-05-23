@@ -13,8 +13,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
@@ -26,6 +25,7 @@ public class TcpServer {
     private final Supplier<Function<ConnectionListener, Tuple2<SendableClient, ServerConfiguration>>> factory;
     private final ServerSocket serverSocket;
     public static long startTime = 0L;
+    private final AtomicBoolean isRunning = new AtomicBoolean(true);
 
     public TcpServer(Supplier<Function<ConnectionListener, Tuple2<SendableClient, ServerConfiguration>>> factory, int port) throws IOException {
         this.factory = factory;
@@ -33,14 +33,14 @@ public class TcpServer {
     }
 
     public void start() {
-        while (true) {
+        while (isRunning.get()) {
             try {
                 Socket s = serverSocket.accept();
                 ServerThread client = new ServerThread(s);
-                Tuple2<SendableClient, ServerConfiguration> connection = factory.get().apply(client);
+                Tuple2<SendableClient, ServerConfiguration> connection = factory.get().apply(client.listener);
                 SenderContext context = new SenderContext(connection.first(), connection.second());
                 connection.first().connect();
-                client.setContext(context);
+                client.setContext(context); // TODO: Avoid placed called (should not be important when to call the set context)
                 client.start();
                 Logger.getLogger(TAG).info("Client accepted");
             } catch (IOException e) {
@@ -49,71 +49,58 @@ public class TcpServer {
         }
     }
 
-    private static class ServerThread extends Thread implements ConnectionListener {
-        private final Socket socket;
-        private final Thread thread;
-        private OutputStream os;
-        private InputStream is;
+    private static class ServerThread extends Thread {
+        private final InputStream is;
+        private final CerenceListener listener;
         private SenderContext client;
-        private final WriterThread writerWorker = new WriterThread();
-        private final Lock writerLock = new ReentrantLock();
 
-        public ServerThread(Socket s) {
-            this.socket = s;
-            this.thread = new Thread(writerWorker);
-            thread.start();
+        public ServerThread(Socket s) throws IOException {
+            is = s.getInputStream();
+            this.listener = new CerenceListener(s.getOutputStream());
         }
 
+        @Override
         public void run() {
-            try {
-                is = socket.getInputStream();
-                os = socket.getOutputStream();
+            WriterWorker writer = new WriterWorker(getClient());
+            Thread writerThread = new Thread(writer);
+            ReaderWorker reader = new ReaderWorker(writer, is);
+            Thread readerThread = new Thread(reader);
 
+            writerThread.start();
+            readerThread.start();
 
-                while (true) {
-                    try {
-                        byte[] buff = new byte[1280];
-                        int read = is.read(buff);
-                        writerWorker.write(buff);
-                        if (startTime == 0) {
-                            startTime = System.currentTimeMillis();
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            waitFor(writerThread, readerThread);
         }
 
-        private class WriterThread implements Runnable {
-            private final BlockingQueue<byte[]> queue;
-
-            private WriterThread() {
-                this.queue = new LinkedBlockingQueue<>();
+        private void waitFor(Thread writerThread, Thread readerThread) {
+            try {
+                writerThread.join();
+                readerThread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
-
-            @Override
-            public void run() {
-                while (true) {
-
-                    try {
-                        byte[] data = queue.take();
-                        getClient().send(data);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+        }
 
 
-                }
+        public void setContext(SenderContext client) {
+            this.client = client;
+        }
+
+        public SenderContext getClient() {
+            if (client == null) {
+                Logger.getLogger(TAG).warning("Client is null!!!");
+                throw new NullPointerException("Client cannot be null"); // should not happen
             }
+            return client;
+        }
+    }
 
-            private void write(byte[] data) {
-                queue.offer(data);
-            }
+    private static class CerenceListener implements ConnectionListener {
+        private final Lock writerLock = new ReentrantLock();
+        private final OutputStream os;
+
+        private CerenceListener(OutputStream os) {
+            this.os = os;
         }
 
         @Override
@@ -151,20 +138,6 @@ public class TcpServer {
                 }
             }).start();
             writerLock.unlock();
-
-        }
-
-
-        public void setContext(SenderContext client) {
-            this.client = client;
-        }
-
-        public SenderContext getClient() {
-            if (client == null) {
-                Logger.getLogger(TAG).warning("Client is null!!!");
-                throw new NullPointerException("Client cannot be null"); // should not happen
-            }
-            return client;
         }
     }
 }

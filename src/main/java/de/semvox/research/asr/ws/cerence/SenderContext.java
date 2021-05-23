@@ -1,6 +1,7 @@
 package de.semvox.research.asr.ws.cerence;
 
 
+import de.semvox.research.asr.tcp.SendableByte;
 import de.semvox.research.asr.ws.cerence.states.SendState;
 import de.semvox.research.asr.ws.cerence.states.States;
 import emma.config.ServerConfiguration;
@@ -10,7 +11,7 @@ import emma.network.SendableClient;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class SenderContext implements CerenceClient {
+public class SenderContext implements CerenceClient, SendableByte {
     private final SendableClient client;
     private final ServerConfiguration config;
     private SendState state = States.initial(this);
