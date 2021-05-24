@@ -15,7 +15,7 @@ public class Data implements Request {
 
     @Override
     public void write() {
-        String data = config.requestData();
+        String data = config.data();
         client.send(Request.lengthOf(data));
         client.send(Request.newLine());
         client.send(data);

@@ -24,7 +24,7 @@ class SslClientTest implements ConnectionListener {
     private String error = "";
     private String received = "";
 
-    private final SslClient client = SslClient.newInstance(this, new ServerConfiguration(), true, factory).get();
+    private final SslClient client = SslClient.newInstance(this, ServerConfiguration.fromDefaultJson(), true, factory).get();
 
     @Test
     void onConnected() throws InterruptedException {
@@ -51,7 +51,7 @@ class SslClientTest implements ConnectionListener {
     @Test
     void readsFromEchoStream() throws InterruptedException {
         SocketFactory fac = new EchoSocket();
-        SslClient echoClient = SslClient.newInstance(this, new ServerConfiguration(), true, fac).get();
+        SslClient echoClient = SslClient.newInstance(this, ServerConfiguration.fromDefaultJson(), true, fac).get();
         echoClient.connect();
         echoClient.send("echo");
         while (received.equals("")) {

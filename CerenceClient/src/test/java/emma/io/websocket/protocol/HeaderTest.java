@@ -11,15 +11,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class HeaderTest {
     private final StringOutput out = new StringOutput();
-    private final Header header = new Header(new FakeClient(out), new ServerConfiguration());
+    private final ServerConfiguration config = ServerConfiguration.fromDefaultJson();
+    private final Header header = new Header(new FakeClient(out),config);
 
     @Test
     void requestHeaders() throws IOException {
 
         String expected = "POST /NmspServlet/ HTTP/1.1\r\n" +
-                "Content-Type: multipart/form-data; boundary=" + ServerConfiguration.rawBoundary() + "\r\n" +
+                "Transfer-Encoding: chunked\r\n" +
                 "Connection: Keep-Alive\r\n" +
-                "Transfer-Encoding: chunked\r\n\r\n";
+                "Content-Type: multipart/form-data; boundary=" +  config.rawBoundary() +"\r\n\r\n";
         header.write();
         assertEquals(expected, out.getResult());
 

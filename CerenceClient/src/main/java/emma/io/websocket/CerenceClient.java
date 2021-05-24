@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 public class CerenceClient implements ConnectionListener {
     private static final String TAG = CerenceClient.class.getSimpleName();
     private final List<Request> protocol = new ArrayList<>();
-    private static final ServerConfiguration config = new ServerConfiguration();
+    private static final ServerConfiguration config = ServerConfiguration.fromDefaultJson();
     private final SendableClient client;
 
     public CerenceClient() throws Exception {

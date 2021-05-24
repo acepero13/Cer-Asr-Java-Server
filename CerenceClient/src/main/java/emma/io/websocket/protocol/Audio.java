@@ -29,7 +29,7 @@ public class Audio implements Request {
 
     @Override
     public void write() {
-        String data = config.requestAudio();
+        String data = config.audio();
 
         int length = data.length() + audioBytes.length * multiplier;
         client.send(Request.lengthOf(length));
