@@ -24,7 +24,6 @@ public class TcpServer {
     private static final String TAG = TcpServer.class.getSimpleName();
     private final Supplier<Function<ConnectionListener, Tuple2<SendableClient, ServerConfiguration>>> factory;
     private final ServerSocket serverSocket;
-    public static long startTime = 0L;
     private final AtomicBoolean isRunning = new AtomicBoolean(true);
 
     public TcpServer(Supplier<Function<ConnectionListener, Tuple2<SendableClient, ServerConfiguration>>> factory, int port) throws IOException {
@@ -66,10 +65,21 @@ public class TcpServer {
             ReaderWorker reader = new ReaderWorker(writer, is);
             Thread readerThread = new Thread(reader);
 
-            writerThread.start();
             readerThread.start();
+            waitForConnection();
+            writerThread.start(); // Only start sending after the cerence client is ready
 
             waitFor(writerThread, readerThread);
+        }
+
+        private void waitForConnection() {// TODO: As waitable
+            while (!listener.isConnected.get()) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
         }
 
         private void waitFor(Thread writerThread, Thread readerThread) {
@@ -98,6 +108,7 @@ public class TcpServer {
     private static class CerenceListener implements ConnectionListener {
         private final Lock writerLock = new ReentrantLock();
         private final OutputStream os;
+        private final AtomicBoolean isConnected = new AtomicBoolean(false);
 
         private CerenceListener(OutputStream os) {
             this.os = os;
@@ -105,11 +116,12 @@ public class TcpServer {
 
         @Override
         public void onConnected(InputStream in, OutputStream out) {
-
+            isConnected.set(true);
         }
 
         @Override
         public void onClose() {
+            isConnected.set(false);
 
         }
 
@@ -129,7 +141,6 @@ public class TcpServer {
             new Thread(() -> {
                 try {
                     Logger.getLogger(TAG).info("DATA received: " + data);
-                    Logger.getLogger(TAG).info("elapsed after receiving: " + (System.currentTimeMillis() - startTime));
                     os.write(data.getBytes(StandardCharsets.UTF_8));
                     os.write(Request.newLine());
                     os.flush();
