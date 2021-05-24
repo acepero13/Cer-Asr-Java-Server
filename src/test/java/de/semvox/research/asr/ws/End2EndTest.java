@@ -29,7 +29,7 @@ class End2EndTest {
 
     @BeforeEach
     void setUpServer() throws InterruptedException {
-        ServerConfiguration config = new ServerConfiguration();
+        ServerConfiguration config = ServerConfiguration.fromDefaultJson();
         server = new AsrEndpoint(this::createConnection, 2701);
         server.start();
         Thread.sleep(200);
@@ -37,7 +37,7 @@ class End2EndTest {
 
     private Function<ConnectionListener, Tuple2<SendableClient, ServerConfiguration>> createConnection() {
         return l -> {
-            ServerConfiguration configuration = new ServerConfiguration();
+            ServerConfiguration configuration = ServerConfiguration.fromDefaultJson();
             int id = listenersMap.size() + 1;
             SendableClient c = SslClient.newInstance(l, configuration, false).get();
             listenersMap.put(id, l);

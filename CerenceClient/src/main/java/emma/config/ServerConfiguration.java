@@ -1,5 +1,6 @@
 package emma.config;
 
+import java.io.InputStream;
 import java.util.Random;
 
 public class ServerConfiguration {
@@ -18,8 +19,23 @@ public class ServerConfiguration {
     private final String boundary
             ;
 
+    private ServerConfiguration(ConfigurationBuilder builder) {
+        this.host = builder.host;
+        this.port = builder.port;
+        this.path = builder.path;
+        this.headers = builder.headers;
+        this.data = builder.data;
+        this.info = builder.info;
+        this.audio = builder.audio;
+        this.boundary = builder.boundary;
+    }
+
     public static ServerConfiguration fromDefaultJson() {
         return JsonLoader.from(ServerConfiguration.class.getClassLoader().getResourceAsStream("asr.json")).load();
+    }
+
+    public static ServerConfiguration from(InputStream is) {
+        return JsonLoader.from(is).load();
     }
 
     private static String randomBoundaryGenerator(int targetStringLength) {
@@ -33,17 +49,11 @@ public class ServerConfiguration {
                 .toString();
     }
 
-    private ServerConfiguration(ConfigurationBuilder builder) {
-        this.host = builder.host;
-        this.port = builder.port;
-        this.path = builder.path;
-        this.headers = builder.headers;
-        this.data = builder.data;
-        this.info = builder.info;
-        this.audio = builder.audio;
-        this.boundary = builder.boundary;
-    }
 
+
+    public static String endingBoundary() {
+        return ""; // TODO: Finish this
+    }
 
     public String boundary() {
         return NEW_LINE + "--" + boundary + NEW_LINE;
@@ -51,10 +61,6 @@ public class ServerConfiguration {
 
     public String rawBoundary() {
         return boundary;
-    }
-
-    public static String endingBoundary() {
-        return ""; // TODO: Finish this
     }
 
     public String host() {

@@ -1,0 +1,6 @@
+/src/main/resources/asr_semvox.json
+/target
+CerenceClient/target
+.idea/
+CerenceClient/CerenceClient.iml
+/CerenceClient/src/main/resources/asr_semvox.json

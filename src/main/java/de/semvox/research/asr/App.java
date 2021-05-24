@@ -36,7 +36,7 @@ public class App {
     }
 
     private static Tuple2<SendableClient, ServerConfiguration> listenerFrom(ConnectionListener listener) {
-        ServerConfiguration configuration = new ServerConfiguration();
+        ServerConfiguration configuration = ServerConfiguration.from(App.class.getClassLoader().getResourceAsStream("asr_semvox.json"));
         return Tuple2.of(
                 SslClient.newInstance(listener, configuration, false).orElseThrow(() -> new RuntimeException("Cannot get ssl conenection")),
                 configuration

@@ -31,7 +31,7 @@ class AsrEndpointTest {
     }
 
     private Function<ConnectionListener, Tuple2<SendableClient, ServerConfiguration>> createConnection() {
-        return l -> Tuple2.of(new FakeClient(l), new ServerConfiguration());
+        return l -> Tuple2.of(new FakeClient(l),ServerConfiguration.fromDefaultJson());
     }
 
     @Test
@@ -49,7 +49,7 @@ class AsrEndpointTest {
     }
 
     private Tuple2<SendableClient, ServerConfiguration> createConnection(ConnectionListener l) {
-        return Tuple2.of(new FakeClient(l), new ServerConfiguration());
+        return Tuple2.of(new FakeClient(l), ServerConfiguration.fromDefaultJson());
     }
 
     static class TestClient extends WebSocketClient {
