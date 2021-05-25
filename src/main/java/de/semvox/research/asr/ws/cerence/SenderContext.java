@@ -41,7 +41,7 @@ public class SenderContext implements CerenceClient, SendableByte {
 
     @Override
     public boolean sendHeader() {
-        //client.connect();
+        client.connect();
         new Header(client, config).write();
         new Data(client, config).write();
         new Info(client, config).write();
@@ -56,7 +56,7 @@ public class SenderContext implements CerenceClient, SendableByte {
 
     @Override
     public boolean sendEnd() {
-        new End(client).write();
+        new End(client, config).write();
         return true;
     }
 }

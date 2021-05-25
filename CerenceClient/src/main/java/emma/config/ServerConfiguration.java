@@ -51,8 +51,8 @@ public class ServerConfiguration {
 
 
 
-    public static String endingBoundary() {
-        return ""; // TODO: Finish this
+    public String endingBoundary() {
+        return NEW_LINE + "--" + boundary() + "--" + NEW_LINE;
     }
 
     public String boundary() {

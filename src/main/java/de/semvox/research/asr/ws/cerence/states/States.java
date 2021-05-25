@@ -65,6 +65,7 @@ public abstract class States implements SendState {
 
         @Override
         public void onAudioFinished() {
+            context.sendEnd();
             context.setState(new InitState(context));
         }
     }

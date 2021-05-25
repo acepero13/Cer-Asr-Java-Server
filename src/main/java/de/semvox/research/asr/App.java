@@ -13,8 +13,8 @@ import java.io.IOException;
 public class App {
     public static void main(String[] args) throws InterruptedException {
         //System.setProperty("jsse.enableCBCProtection", "false");
-        //startWs();
-        startTcp();
+        startWs();
+        //startTcp();
 
     }
 
