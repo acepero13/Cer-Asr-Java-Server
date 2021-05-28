@@ -1,5 +1,6 @@
 package de.semvox.research.asr;
 
+import de.semvox.research.asr.netty.NettyServer;
 import de.semvox.research.asr.tcp.TcpServer;
 import de.semvox.research.asr.utils.Tuple2;
 import de.semvox.research.asr.ws.AsrEndpoint;
@@ -9,13 +10,19 @@ import emma.network.SendableClient;
 import emma.network.SslClient;
 
 import java.io.IOException;
+import java.util.Objects;
 
 public class App {
     public static void main(String[] args) throws InterruptedException {
         //System.setProperty("jsse.enableCBCProtection", "false");
         //startWs();
-        startTcp();
+        //startTcp();
+        startNetty();
 
+    }
+
+    private static void startNetty() throws InterruptedException {
+        Objects.requireNonNull(NettyServer.openServerPort(() -> App::listenerFrom, 2701)).channel().closeFuture().sync();
     }
 
     private static void startTcp() {

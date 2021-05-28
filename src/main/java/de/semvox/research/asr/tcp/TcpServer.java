@@ -105,7 +105,7 @@ public class TcpServer {
         }
     }
 
-    private static class CerenceListener implements ConnectionListener {
+    public static class CerenceListener implements ConnectionListener {
         private final Lock writerLock = new ReentrantLock();
         private final OutputStream os;
         private final AtomicBoolean isConnected = new AtomicBoolean(false);
